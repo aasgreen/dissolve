@@ -12,17 +12,6 @@
 clear all
 
 
-   #start with one dimenstional
-
-#set term dumb
-#plot(t,x)
-
-function y = begin()
-y = lsode ("f", [4,5], (t = linspace (0, 40, 100)'));
-subplot(111) 
-plot(t,y)
-endfunction
-
 function [YSur,HSur] = surface_begin()
 x = [-10:10];
 YSurInit = x.^2;
@@ -36,7 +25,7 @@ for i = [1:length(x)]
    length(y(1,:))
    HSur = [HSur,y(:,2)]
    YSur = [YSur,y(:,1)];
-   y = 0
+     y = 0
 endfor
 
 endfunction
@@ -46,13 +35,24 @@ function ydot  = f(y,t)
 #beta is geological growth (for mountains)
     
    beta = 0.;
-   alpha = 4.;
-   alpha2 = 8;
+   alpha = 2.;
+   alpha2 = 2;
    ydot(1) = -alpha*heaviside(y(2)-y(1))+beta;
    ydot(2) = ydot(1) -alpha2*(heaviside(y(2)-y(1)));
    
 endfunction
 
+function h = movie(HSur,YSur,x)
+system("rm -rf plot-output; mkdir plot-output")
+t = linspace(0,80,200)'
+for i = [1:length(HSur(:,1))]
+	plot(x,HSur(i,:),x, YSur(i,:));
+	axis([-10 10 -150 100]);
+	print(sprintf("plot-output/%05d.png",i));
+endfor;
+system("ffmpeg -sameq -i plot-output/%05d.png -y plot-output/erosionmovie.avi");
+system("open plot-output/erosionmovie.avi");
+endfunction
 
 function V = liquid_volume(t)
    #in 1d land, you have got 5 m of rain
@@ -80,3 +80,4 @@ l2=heaviside(1)
 l3=heaviside(-1)
 #x= begin()
 [x2,height] = surface_begin()
+h = movie(x2,height, [-10:10]);
